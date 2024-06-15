@@ -1,0 +1,75 @@
+﻿program InegertInput;
+
+uses
+  App, Objects, Drivers, Views, Dialogs, MsgBox, IntInput;
+
+type
+  PMyApp = ^TMyApp;
+  TMyApp = object(TApplication)
+    procedure Run; virtual;
+    procedure HandleEvent(var Event: TEvent); virtual;
+    procedure ShowDateDialog;
+  end;
+
+procedure TMyApp.HandleEvent(var Event: TEvent);
+begin
+  TApplication.HandleEvent(Event);
+  if Event.What = evCommand then
+  begin
+    case Event.Command of
+      cmNew: ShowDateDialog;
+    else
+      Exit;
+    end;
+    ClearEvent(Event);
+  end;
+end;
+
+procedure TMyApp.ShowDateDialog;
+var
+  D: PDialog;
+  R: TRect;
+  InputLine: PInputInt;
+  inputValue: LongInt;
+  s: string;
+begin
+  R.Assign(0, 0, 60, 12);
+  R.Move(10, 2);
+  D := New(PDialog, Init(R, 'Entering an integer number'));
+  R.Assign(15, 2, 45, 4);
+  R.Move(6, 0);
+  D^.Insert(New(PStaticText,Init(R,'Range: [-100, 100]')));
+  R.Assign(8, 4, 35, 5);
+  R.Move(3, 0);
+  D^.Insert(New(PStaticText,Init(R,'Enter your integer number:')));
+  R.Assign(6, 5, 45, 6);
+  R.Move(5, 0);
+  InputLine := New(PInputInt, Init(R, 255, -100, 100));
+  D^.Insert(InputLine);
+  R.Assign(22, 7, 36, 9);
+  D^.Insert(New(PButton, Init(R, '~O~K', cmOk, bfDefault)));
+  if Desktop^.ExecView(D) = cmOk then
+  begin
+    if InputLine^.Valid(0) then
+    begin
+      InputLine^.GetData(inputValue);
+      str(inputValue, s);
+      MessageBox('You entered: ' + s, nil, mfInformation + mfOkButton);
+    end;
+  end;
+  Dispose(D, Done);
+end;
+
+procedure TMyApp.Run;
+begin
+  ShowDateDialog;
+end;
+
+var
+  MyApp: TMyApp;
+  
+begin
+  MyApp.Init;
+  MyApp.Run;
+  MyApp.Done;
+end.

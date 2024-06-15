@@ -1,0 +1,110 @@
+﻿unit IntInput;
+
+interface
+
+uses
+  Objects, Views, Dialogs, MsgBox;
+
+type
+  Interval = (a_b, a_inf, inf_b, inf_inf);
+
+  PInputInt = ^TInputInt;
+  TInputInt = object(TInputLine)
+    min, max: LongInt;
+    int: Interval;
+    constructor Init(R: TRect; i: integer; mina, maxa: longint);
+    function DataSize: word; virtual;
+    procedure GetData(var Rec); virtual;
+    procedure SetData(var Rec); virtual;
+    function Valid(com: word): boolean; virtual;
+  end;
+
+implementation
+
+constructor TInputInt.Init(R: TRect; i: integer; mina, maxa: longint);
+begin
+  TInputLine.Init(R, i);
+  min := mina;
+  max := maxa;
+  if min < max then
+    int := a_b
+  else if min = max + 3 then
+    int := inf_inf
+  else if min = max + 1 then
+    int := a_inf
+  else
+    int := inf_b;
+end;
+
+function TInputInt.DataSize: word;
+begin
+  DataSize := SizeOf(LongInt);
+end;
+
+procedure TInputInt.GetData(var Rec);
+var
+  R: LongInt absolute Rec;
+  i: integer;
+begin
+  if Valid(i) then
+    val(Data^, R, i);
+end;
+
+procedure TInputInt.SetData(var Rec);
+var
+  R: LongInt absolute Rec;
+begin
+  str(R, Data^);
+  SelectAll(true);
+end;
+
+function TInputInt.Valid(com: word): boolean;
+var
+  r: LongInt;
+  i: integer;
+  v: boolean;
+  s1, s2: string;
+begin
+  val(Data^, r, i);
+  if i <> 0 then
+  begin
+    MessageBox('Invalid input', nil, mfError + mfOkButton);
+    Valid := false;
+    exit;
+  end;
+
+  case int of
+    a_b: v := (r >= min) and (r <= max);
+    a_inf: v := (r >= min);
+    inf_b: v := (r <= max);
+    inf_inf: v := true;
+  end;
+
+  if not v then
+  begin
+    case int of
+      a_b:
+      begin
+        str(min: 11, s1);
+        s2 := s1 + ' <= I <= ';
+        str(max: 11, s1);
+        s2 := s2 + s1 + '! ';
+      end;
+      a_inf:
+      begin
+        str(min: 11, s1);
+        s2 := 'I >= ' + s1 + ' ! ';
+      end;
+      inf_b:
+      begin
+        str(max: 11, s1);
+        s2 := 'I <= ' + s1 + ' ! ';
+      end;
+    end;
+    MessageBox(s2, nil, mfError + mfOkButton);
+  end;
+
+  Valid := v;
+end;
+
+end.
